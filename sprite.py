@@ -1,4 +1,5 @@
 from __future__ import annotations
+from array import array
 import random
 import pygame
 WIDTH = 800
@@ -37,15 +38,16 @@ class Enemy(Sprite):
       self.w = 30
       self.h = 20
       self.y = 0 + 10 * random.randint(2, 8)
+    self.y = HEIGHT - self.y
     self.col = (255, 0, 0)
   
   def draw(self, pygame: pygame, screen: pygame.Surface) -> None:
     pygame.draw.rect(screen, self.col, (self.x, self.y, self.w, self.h))
-  def update(self, speed):
+  def update(self, speed: int, player) -> bool:
     self.x -= speed
-    if self.x < 0:
-      return -1
-    return 0
+    if self.x + self.w < 0 or (self.x < 200 and self.collides_with(player)):
+      return True
+    return False
 class Controllable:
   def UP_PRESSED(self, event: pygame.event) -> None:
     pass
@@ -86,35 +88,33 @@ class Player(Sprite, Controllable):
 
   # Update every couple of frames
   def update(self, speed):
-    airborne = self.y + self.h + self.dy <= HEIGHT
-    jumping = self.up and abs(self.y) > 200
 
-    # if jumping and have not used jump: set self.dy
+
+    # if jumping, have more fuel, and have not used jump: set self.dy
+    jumping = self.up and self.y > 200
     if jumping and not self.used_jump:
       self.dy = -10
-    # otherwise, set jump to used
+    # otherwise, set jump to used to prevent double jump
     else:
       self.used_jump = True
-      self.ddy = 1
 
-    # if ducking and on ground:
-    if self.ducking and not airborne:
-      self.h = 50
-    else:
-      self.h = 100
-
-    # if not on ground:
+    # if in the air
+    airborne = self.y + self.h + self.dy <= HEIGHT
     if airborne:
       # move sprite
       self.y += self.dy
       # gravity
-      self.dy += self.ddy
+      if not jumping:
+        self.dy += 1
     # if on ground:
     else:
-      # move to bottom of screen
+      # if you are ducking
+      if self.ducking:
+        self.h = 50
+      else:
+        self.h = 100
+
+      # move to bottom of screen, stay on floor
       self.y = HEIGHT - self.h
-      # set dy to 0
       self.dy = 0
-      self.ddy = 0
-      # unuse jump
       self.used_jump = False

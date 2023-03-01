@@ -1,22 +1,23 @@
 import time
 import pygame
+import random
 
 from sprite import Player, Enemy, WIDTH, HEIGHT
-
 
 pygame.init()
 pygame.display.set_caption("Dino Game")
 
 FONT = pygame.font.Font('freesansbold.ttf', 32)
+FPS = 45
 
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 
 enemies, player = [], Player()
 
-fpsClock = pygame.time.Clock()
-FPS = 60
-speed = 5
+fps_clock = pygame.time.Clock()
+delta_time = 60 / FPS
 running = True
+frames_until_new_enemy = 100
 
 def draw():
   screen.fill((255, 255, 255))
@@ -25,16 +26,22 @@ def draw():
   player.draw(pygame, screen)
 
 def update():
+
+  # update all enemies
   for enemy in enemies:
-    if enemy.update(speed) or (enemy.x < 200 and enemy.collides_with(player)):
+    if enemy.update(4 * delta_time, player):
       enemies.remove(enemy)
 
-  # run statically
-  player.update(speed) 
+  # update the player
+  player.update(4 * delta_time) 
 
 while running:
 
-  before = round(time.time()*1000)
+  frames_until_new_enemy -= 1 * delta_time
+  if frames_until_new_enemy <= 0:
+    enemies.append(Enemy())
+    frames_until_new_enemy = random.randint(50, 120)
+    print("New enemy in: ", frames_until_new_enemy / FPS, "seconds")
 
   # manage events
   for event in pygame.event.get():
@@ -50,8 +57,6 @@ while running:
         player.UP_RELEASED(event)
       elif event.key == pygame.K_DOWN:
         player.DOWN_RELEASED(event)
-      elif event.key == pygame.K_SPACE:
-        enemies.append(Enemy())
   
   # draw to the screen
   draw()
@@ -59,11 +64,7 @@ while running:
   # update sprites
   update()
 
-  after = round(time.time()*1000)
-
-  
-
   pygame.display.flip()
-  fpsClock.tick(FPS)
+  fps_clock.tick(FPS)
 
 pygame.quit()

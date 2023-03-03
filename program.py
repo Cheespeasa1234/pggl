@@ -2,15 +2,16 @@ import time
 import pygame
 import random
 
+from levigl import Graphics2D
 from sprite import Player, Enemy, WIDTH, HEIGHT
 
 pygame.init()
 pygame.display.set_caption("Dino Game")
 
-FONT = pygame.font.Font('freesansbold.ttf', 32)
 FPS = 45
 
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
+g2 = Graphics2D(screen, pygame)
 
 enemies, player = [], Player()
 
@@ -22,8 +23,8 @@ frames_until_new_enemy = 100
 def draw():
   screen.fill((255, 255, 255))
   for enemy in enemies:
-    enemy.draw(pygame, screen)
-  player.draw(pygame, screen)
+    enemy.draw(g2)
+  player.draw(g2)
 
 def update():
 

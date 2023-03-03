@@ -1,16 +1,10 @@
 from __future__ import annotations
 from array import array
+from levigl import Animation, Frame, Graphics2D
 import random
 import pygame
 WIDTH = 800
 HEIGHT = 500
-
-def darken(color: tuple) -> tuple:
-  r,g,b = color
-  r -= 10 if r > 10 else 0
-  g -= 10 if g > 10 else 0
-  b -= 10 if b > 10 else 0
-  return (r, g, b)
 
 class Sprite:
   def __init__(self, x, col):
@@ -19,14 +13,20 @@ class Sprite:
     self.h = 100
     self.y = HEIGHT - self.h
     self.col = col
+
+    self.curFrame = None
+    self.animation = None
   def collides_with(self, sprite: Sprite) -> bool:
     return self.hitbox().colliderect(sprite.hitbox())
-  def draw(self, pygame: pygame, screen: pygame.Surface) -> None:
-    pygame.draw.rect(screen, self.col, (self.x, self.y, self.w, self.h))
+  def draw(self, g2: Graphics2D) -> None:
+    g2.set_color(self.col)
+    g2.rect(self.x, self.y, self.w, self.h)
   def update(self, speed):
     self.x -= speed
   def hitbox(self) -> pygame.Rect:
     return pygame.Rect(self.x, self.y, self.w, self.h)
+  def animate(self, animation: Animation) -> None:
+    return
 class Enemy(Sprite):
   def __init__(self):
     self.x = WIDTH - 40
@@ -40,7 +40,7 @@ class Enemy(Sprite):
       self.y = 0 + 10 * random.randint(2, 8)
     self.y = HEIGHT - self.y
     self.col = (255, 0, 0)
-  
+
   def draw(self, pygame: pygame, screen: pygame.Surface) -> None:
     pygame.draw.rect(screen, self.col, (self.x, self.y, self.w, self.h))
   def update(self, speed: int, player) -> bool:
@@ -48,6 +48,7 @@ class Enemy(Sprite):
     if self.x + self.w < 0 or (self.x < 200 and self.collides_with(player)):
       return True
     return False
+  
 class Controllable:
   def UP_PRESSED(self, event: pygame.event) -> None:
     pass
@@ -83,13 +84,12 @@ class Player(Sprite, Controllable):
 
   # Main method abstractors
   # Draw every frame
-  def draw(self, pygame: pygame, screen: pygame.Surface) -> None:
-    pygame.draw.rect(screen, self.col, (self.x, self.y, self.w, self.h))
+  def draw(self, g2: Graphics2D) -> None:
+    g2.set_color(self.col)
+    g2.rect(self.x, self.y, self.w, self.h)
 
   # Update every couple of frames
   def update(self, speed):
-
-
     # if jumping, have more fuel, and have not used jump: set self.dy
     jumping = self.up and self.y > 200
     if jumping and not self.used_jump:
@@ -118,3 +118,11 @@ class Player(Sprite, Controllable):
       self.y = HEIGHT - self.h
       self.dy = 0
       self.used_jump = False
+
+
+def darken(color: tuple) -> tuple:
+  r, g, b = color
+  r -= 10 if r > 10 else 0
+  g -= 10 if g > 10 else 0
+  b -= 10 if b > 10 else 0
+  return (r, g, b)

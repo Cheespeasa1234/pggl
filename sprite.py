@@ -26,7 +26,8 @@ class Sprite:
   def hitbox(self) -> pygame.Rect:
     return pygame.Rect(self.x, self.y, self.w, self.h)
   def animate(self, animation: Animation) -> None:
-    return
+    self.animation = animation
+
 class Enemy(Sprite):
   def __init__(self):
     self.x = WIDTH - 40
@@ -118,7 +119,6 @@ class Player(Sprite, Controllable):
       self.y = HEIGHT - self.h
       self.dy = 0
       self.used_jump = False
-
 
 def darken(color: tuple) -> tuple:
   r, g, b = color
